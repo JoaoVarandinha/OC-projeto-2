@@ -55,7 +55,7 @@ static uint32_t sa2_select_victim_way(Cache *cache, uint32_t set)
     return lru_way;
 }
 
-static L1Line *sa2_prepare_access(Cache *cache, uint32_t address, bool is_write)
+static L1Line *sa2_prepare_access(Cache *cache, uint32_t address)
 {
     uint32_t block_number = address / BLOCK_SIZE;
     uint32_t set = block_number % SA2_SETS;
@@ -83,7 +83,6 @@ static L1Line *sa2_prepare_access(Cache *cache, uint32_t address, bool is_write)
     entry->tag = tag;
     entry->dirty = false;
     entry->last_used = ++cache->clock;
-    (void)is_write;
     return entry;
 }
 
@@ -92,7 +91,7 @@ uint8_t sa2_read(Cache *cache, uint32_t address)
     stats_record(EVENT_CPU_READ);
 
     uint32_t offset = address % BLOCK_SIZE;
-    L1Line *entry = sa2_prepare_access(cache, address, false);
+    L1Line *entry = sa2_prepare_access(cache, address);
     return entry->data[offset];
 }
 
@@ -101,7 +100,7 @@ void sa2_write(Cache *cache, uint32_t address, uint8_t value)
     stats_record(EVENT_CPU_WRITE);
 
     uint32_t offset = address % BLOCK_SIZE;
-    L1Line *entry = sa2_prepare_access(cache, address, true);
+    L1Line *entry = sa2_prepare_access(cache, address);
     entry->data[offset] = value;
     entry->dirty = true;
 }
